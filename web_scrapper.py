@@ -6,11 +6,15 @@ response = requests.get(url)
 
 soup = bs(response.text, 'html.parser')
 
-tags = ['style', 'script', 'head', 'title', '[document]']
-for t in tags:
-    [s.extract() for s in soup(t)]
+# tags = ['style', 'script', 'head', 'title', '[document]']
+# for t in tags:
+#     [s.extract() for s in soup(t)]
+for x in soup.find_all("meta"):
+    print(x)
 
-for el in soup.find_all()[2:]:
-    text_el = el.text.strip()
-    print(el.name, '\t', el.attrs, '\t', text_el)
-# print(response.text)
+
+#
+# for el in soup.find_all()[2:]:
+#     text_el = el.text.strip()
+#     print(el.name, '\t', el.attrs, '\t', text_el)
+# # print(response.text)
