@@ -3,11 +3,12 @@
 prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix dbpedia-owl: <http://dbpedia.org/ontology/>
 
-select distinct ?film ?label where  {
+select ?net where  {
   { ?film a dbpedia-owl:TelevisionShow }
   ?film rdfs:label ?label .
-  filter regex( str(?label), "^stranger things"@en, "i") .
+  ?film dbo:network ?net
+  filter regex( str(?label), "^stranger things", "i") .
 FILTER langMatches(lang(?label), "en")
 }
 
-limit 1000
+limit 1
