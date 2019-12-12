@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup as bs
 
 from send_sparql_query import get_network_name
 
+directory = 'web_pages/'
+
 
 def grab_original_title(soup: bs):
     if (original_title := soup.find("div", attrs={"class": "originalTitle"})) is not None:
@@ -20,8 +22,7 @@ def improve_webpage(url: str):
     # print(response.text)
 
     full_title = soup.find("title").text
-    if not (series_name:= grab_original_title(soup)):
-
+    if not (series_name := grab_original_title(soup)):
         index = full_title.find(" (TV Series")
         series_name = full_title[:index]
 
@@ -41,7 +42,7 @@ def improve_webpage(url: str):
         network_tag.append(network_name_tag)
         print(plot_summary_tag)
 
-    with open('web_pages/' + full_title + ".htm", 'w') as f:
+    with open(directory + full_title + ".htm", 'w') as f:
         f.write(soup.prettify())
 
 
@@ -52,6 +53,10 @@ def main():
         'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',
         'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'
     ]
+    import os
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     for url in urls:
         improve_webpage(url)
 
