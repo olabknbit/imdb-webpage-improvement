@@ -1,9 +1,9 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
-def get_network_name():
+def get_network_name(series_name: str):
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
-    sparql.setQuery("""
+    query = """
         prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         prefix dbpedia-owl: <http://dbpedia.org/ontology/>
 
@@ -11,12 +11,14 @@ def get_network_name():
         { ?film a dbpedia-owl:TelevisionShow }
         ?film rdfs:label ?label .
         ?film dbo:network ?net
-        filter regex( str(?label), "^stranger things", "i") .
+        filter regex( str(?label), "^""" + series_name + """", "i") .
         FILTER langMatches(lang(?label), "en")
         }
 
         limit 1
-    """)
+    """
+    sparql.setQuery(query)
+    print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
@@ -26,4 +28,5 @@ def get_network_name():
 
 
 if __name__ == "__main__":
-    get_network_name()
+    nn = get_network_name("Gossip Girl")
+    print(nn)
