@@ -30,8 +30,7 @@ def improve_webpage(url: str):
     net_name = get_network_name(series_name)
     print("network name:", net_name)
     if net_name:
-        el = soup.find(text="Creators:")
-        plot_summary_tag = el.parent.parent.parent
+        plot_summary_tag = soup.find(class_="plot_summary")
         network_tag = soup.new_tag("h4")
         network_tag['class'] = "inline"
         network_tag.string = "Network:"
@@ -48,6 +47,9 @@ def improve_webpage(url: str):
 
 def main():
     urls = [
+        'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',
+        'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',
+        'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0',
         'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',
         'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',
         'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',
