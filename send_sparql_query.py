@@ -4,18 +4,18 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 def get_network_name(series_name: str):
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
     query = """
-        prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        prefix dbpedia-owl: <http://dbpedia.org/ontology/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
 
-        select ?net where  {
-        { ?film a dbpedia-owl:TelevisionShow }
-        ?film rdfs:label ?label .
-        ?film dbo:network ?net
-        filter regex( str(?label), "^""" + series_name + """", "i") .
-        FILTER langMatches(lang(?label), "en")
+        SELECT ?net where  {
+            { ?film a dbpedia-owl:TelevisionShow }
+            ?film rdfs:label ?label .
+            ?film dbo:network ?net
+            FILTER regex( str(?label), "^""" + series_name + """", "i") .
+            FILTER langMatches(lang(?label), "en")
         }
 
-        limit 1
+        LIMIT 1
     """
     sparql.setQuery(query)
     print(query)
@@ -27,6 +27,35 @@ def get_network_name(series_name: str):
         # print('%s: %s' % (result["label"]["xml:lang"], result["label"]["value"]))
 
 
+def get_wikidata_uri(series_name: str):
+    sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+    query = """
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+
+        select DISTINCT ?sameas where  {
+            { ?film a dbpedia-owl:TelevisionShow }
+            ?film rdfs:label ?label .
+            ?film dbo:network ?net .
+            ?film owl:sameAs ?sameas .
+            FILTER regex( str(?label), "^""" + series_name + """", "i") .
+            FILTER regex( str(?sameas), "http://www.wikidata.org/entity/", "i") .
+        
+            FILTER langMatches(lang(?label), "en")
+        }
+        LIMIT 1
+    """
+    sparql.setQuery(query)
+    print(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    for result in results["results"]["bindings"]:
+        return result['sameas']['value']
+        # print('%s: %s' % (result["label"]["xml:lang"], result["label"]["value"]))
+
+
 if __name__ == "__main__":
-    nn = get_network_name("Gossip Girl")
-    print(nn)
+    # nn = get_network_name("Gossip Girl")
+    uri = get_wikidata_uri("Stranger Things")
+    print(uri)
