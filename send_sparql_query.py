@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Dict
 
 from SPARQLWrapper import SPARQLWrapper, JSON
+
+from actor import Actor
 
 
 def get_network_name(series_name: str) -> str:
@@ -60,66 +62,67 @@ def get_wikidata_uri(series_name: str) -> str:
         return strip_wikidata_entity(result['sameas']['value'])
 
 
-def get_wikidata_actor_uris(series_uri: str) -> List[str]:
+def get_wikidata_actor_uris(series_uri: str) -> List[Actor]:
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
     query = """
-        SELECT ?show ?actor
+        SELECT ?show ?actor ?actorLabel
         WHERE {
             BIND(wd:""" + series_uri + """ as ?show) .
             ?show wdt:P161 ?actor .
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
-        LIMIT 3
     """
     sparql.setQuery(query)
     # print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
-    actors = [strip_wikidata_entity(result['actor']['value']) for result in results["results"]["bindings"]]
+    actors = []
+    for result in results["results"]["bindings"]:
+        uri = strip_wikidata_entity(result['actor']['value'])
+        actors.append(Actor(uri=uri, name=result['actorLabel']['value']))
+
     return actors
 
 
-class Actor:
-    def __init__(self, uri: str, name: str, date_of_birth: str):
-        self.uri = uri
-        self.name = name
-        self.date_of_birth = date_of_birth
-
-    def to_string(self):
-        return self.name + " was born " + self.date_of_birth
-
-
 def get_actor_info_from_wikidata(actor_uri: str) -> Actor:
-    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-    query = """
-        SELECT ?actor ?actorLabel ?dateofbirth
-        WHERE {
-            BIND(wd:""" + actor_uri + """ as ?actor) .
-            ?actor wdt:P569 ?dateofbirth .
-            SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
-            
-        }
-        """
-    sparql.setQuery(query)
-    # print(query)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
+    try:
+        sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+        query = """
+            SELECT ?actor ?actorLabel ?dateofbirth
+            WHERE {
+                BIND(wd:""" + actor_uri + """ as ?actor) .
+                ?actor wdt:P569 ?dateofbirth .
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
+                
+            }
+            """
+        sparql.setQuery(query)
+        # print(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
 
-    for result in results["results"]["bindings"]:
-        uri = result['actor']['value']
-        name = result['actorLabel']['value']
-        bod = result['dateofbirth']['value']
-        return Actor(uri=uri, name=name, date_of_birth=bod)
+        for result in results["results"]["bindings"]:
+            uri = result['actor']['value']
+            name = result['actorLabel']['value']
+            bod = result['dateofbirth']['value']
+            return Actor(uri=uri, name=name, date_of_birth=bod)
+    except Exception as e:
+        print(e.args)
 
 
-def get_series_actors(series_name: str) -> List[Actor]:
+def get_series_actors(series_name: str, names_to_filter=None) -> Dict[str, Actor]:
     uri = get_wikidata_uri(series_name)
     if uri is None:
-        return []
+        return {}
     actor_uris = get_wikidata_actor_uris(uri)
-    actors = [get_actor_info_from_wikidata(actor_uri) for actor_uri in actor_uris]
-    actors = [a for a in actors if a is not None]
+    actors = {}
+    if names_to_filter:
+        for actor in actor_uris:
+            if actor.name in names_to_filter:
+                if actor := get_actor_info_from_wikidata(actor.uri):
+                    actors[actor.name] = actor
+
     return actors
 
 

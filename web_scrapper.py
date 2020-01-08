@@ -36,18 +36,18 @@ def add_tropes_info(soup, series_name):
         print(plot_summary_tag)
 
 
-def improve_webpage(url: str):
-    response = requests.get(url)
+def get_most_important_actors(soup: bs):
+    el = soup.find("div", attrs={"class": "article", "id": "titleCast"})
+    table = el.find("table", attrs={"class": "cast_list"})
+    actor_names = []
+    for row in table.findAll('tr')[1:]:
+        if first_column := row.find('td', attrs={"class": "primary_photo"}):
+            actor_name = first_column.find("a").find("img")["title"]
+            actor_names.append(actor_name)
+    return actor_names
 
-    soup = bs(response.text, 'html.parser')
-    # print(response.text)
 
-    full_title = soup.find("title").text
-    if not (series_name := grab_original_title(soup)):
-        index = full_title.find(" (TV Series")
-        series_name = full_title[:index]
-
-    print(full_title, "XXX", series_name)
+def add_network_name_info(soup, series_name):
     net_name = get_network_name(series_name)
     print("network name:", net_name)
     if net_name:
@@ -68,8 +68,10 @@ def improve_webpage(url: str):
 
         # print(plot_summary_tag)
 
-    actors = get_series_actors(series_name)
-    print("actors:", [a.to_string() for a in actors])
+
+def add_actors_info(soup, series_name, actor_names):
+    actors = get_series_actors(series_name, actor_names)
+    print("actors:", [a.to_string() for a in actors.values()])
     if len(actors) > 0:
         plot_summary_tag = soup.find(class_="plot_summary")
         credit_summary_item = soup.new_tag("div")
@@ -80,14 +82,58 @@ def improve_webpage(url: str):
         actors_tag.string = "Actors:"
         credit_summary_item.append(actors_tag)
 
-        for actor in actors:
-            actor_name_tag = soup.new_tag("a", href=actor.uri)
-            actor_name_tag.string = actor.name
-            credit_summary_item.append(actor_name_tag)
+        table_tag = soup.new_tag("table")
+        header_tag = soup.new_tag("tr")
 
+        header_actor_tag = soup.new_tag("th")
+        header_actor_tag.string = "Actor"
+
+        dob_actor_tag = soup.new_tag("th")
+        dob_actor_tag.string = "Date of birth"
+
+        header_tag.append(header_actor_tag)
+        header_tag.append(dob_actor_tag)
+
+        table_tag.append(header_tag)
+
+        for actor_name in actor_names:
+            if actor_name in actors.keys():
+                # print(actor_name)
+                actor = actors[actor_name]
+                row = soup.new_tag("tr")
+
+                actor_tag = soup.new_tag("td")
+                actor_name_tag = soup.new_tag("a", href=actor.uri)
+                actor_name_tag.string = actor.name
+                actor_tag.append(actor_name_tag)
+
+                dob_actor_tag = soup.new_tag("td")
+                dob_actor_tag.string = actor.date_of_birth
+
+                row.append(actor_tag)
+                row.append(dob_actor_tag)
+
+                table_tag.append(row)
+        credit_summary_item.append(table_tag)
         plot_summary_tag.append(credit_summary_item)
 
+
+def improve_webpage(url: str):
+    response = requests.get(url)
+
+    soup = bs(response.text, 'html.parser')
+    # print(response.text)
+
+    full_title = soup.find("title").text
+    if not (series_name := grab_original_title(soup)):
+        index = full_title.find(" (TV Series")
+        series_name = full_title[:index]
+
+    print(full_title, "XXX", series_name)
+    add_network_name_info(soup, series_name)
     add_tropes_info(soup, series_name)
+    actors = get_most_important_actors(soup)
+    add_actors_info(soup, series_name, actors)
 
     with open(directory + full_title + ".htm", 'w') as f:
         f.write(soup.prettify())
