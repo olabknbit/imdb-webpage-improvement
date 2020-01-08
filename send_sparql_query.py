@@ -52,10 +52,29 @@ def get_wikidata_uri(series_name: str):
 
     for result in results["results"]["bindings"]:
         return result['sameas']['value']
-        # print('%s: %s' % (result["label"]["xml:lang"], result["label"]["value"]))
 
+
+def get_wikidata_actors(series_uri: str):
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+    query = """
+        SELECT ?show ?actor
+        WHERE {
+            BIND(wd:Q22906308 as ?show) .
+            ?show wdt:P161 ?actor .
+            SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
+        } 
+    """
+    sparql.setQuery(query)
+    print(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    for result in results["results"]["bindings"]:
+        return result['actor']['value']
 
 if __name__ == "__main__":
     # nn = get_network_name("Gossip Girl")
-    uri = get_wikidata_uri("Stranger Things")
-    print(uri)
+    # uri = get_wikidata_uri("Stranger Things")
+    # print(uri)
+    actors = get_wikidata_actors("")
+    print(actors)
