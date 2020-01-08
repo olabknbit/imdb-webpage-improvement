@@ -69,14 +69,18 @@ def improve_webpage(url: str):
 
     add_tropes_info(soup, series_name)
 
-
-
     with open(directory + full_title + ".htm", 'w') as f:
         f.write(soup.prettify())
 
 
 def main():
     urls = [
+        'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',
+        'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',
+        'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0',
+        'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',
+        'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',
+        'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',
         'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'
     ]
     import os
