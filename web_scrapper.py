@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup as bs
 
-from send_sparql_query import get_network_name
 from query_dbtropes import retrieve_tropes
+from send_sparql_query import get_network_name, get_series_actors
 
 directory = 'web_pages/'
 
@@ -14,6 +14,7 @@ def grab_original_title(soup: bs):
         series_name = original_title[:index]
         return series_name
     return None
+
 
 def add_tropes_info(soup, series_name):
     tropes = retrieve_tropes(series_name)
@@ -65,7 +66,26 @@ def improve_webpage(url: str):
 
         plot_summary_tag.append(credit_summary_item)
 
-        print(plot_summary_tag)
+        # print(plot_summary_tag)
+
+    actors = get_series_actors(series_name)
+    print("actors:", [a.to_string() for a in actors])
+    if len(actors) > 0:
+        plot_summary_tag = soup.find(class_="plot_summary")
+        credit_summary_item = soup.new_tag("div")
+        credit_summary_item['class'] = "credit_summary_item"
+
+        actors_tag = soup.new_tag("h4")
+        actors_tag['class'] = "inline"
+        actors_tag.string = "Actors:"
+        credit_summary_item.append(actors_tag)
+
+        for actor in actors:
+            actor_name_tag = soup.new_tag("a", href=actor.uri)
+            actor_name_tag.string = actor.name
+            credit_summary_item.append(actor_name_tag)
+
+        plot_summary_tag.append(credit_summary_item)
 
     add_tropes_info(soup, series_name)
 

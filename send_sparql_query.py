@@ -20,7 +20,7 @@ def get_network_name(series_name: str) -> str:
         LIMIT 1
     """
     sparql.setQuery(query)
-    print(query)
+    # print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
@@ -52,7 +52,7 @@ def get_wikidata_uri(series_name: str) -> str:
         LIMIT 1
     """
     sparql.setQuery(query)
-    print(query)
+    # print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
@@ -69,9 +69,10 @@ def get_wikidata_actor_uris(series_uri: str) -> List[str]:
             ?show wdt:P161 ?actor .
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
+        LIMIT 3
     """
     sparql.setQuery(query)
-    print(query)
+    # print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
@@ -80,7 +81,8 @@ def get_wikidata_actor_uris(series_uri: str) -> List[str]:
 
 
 class Actor:
-    def __init__(self, name: str, date_of_birth: str):
+    def __init__(self, uri: str, name: str, date_of_birth: str):
+        self.uri = uri
         self.name = name
         self.date_of_birth = date_of_birth
 
@@ -100,20 +102,24 @@ def get_actor_info_from_wikidata(actor_uri: str) -> Actor:
         }
         """
     sparql.setQuery(query)
-    print(query)
+    # print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
     for result in results["results"]["bindings"]:
+        uri = result['actor']['value']
         name = result['actorLabel']['value']
         bod = result['dateofbirth']['value']
-        return Actor(name=name, date_of_birth=bod)
+        return Actor(uri=uri, name=name, date_of_birth=bod)
 
 
 def get_series_actors(series_name: str) -> List[Actor]:
     uri = get_wikidata_uri(series_name)
+    if uri is None:
+        return []
     actor_uris = get_wikidata_actor_uris(uri)
     actors = [get_actor_info_from_wikidata(actor_uri) for actor_uri in actor_uris]
+    actors = [a for a in actors if a is not None]
     return actors
 
 
