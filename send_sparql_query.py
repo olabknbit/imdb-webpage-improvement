@@ -1,7 +1,9 @@
+from typing import List
+
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 
-def get_network_name(series_name: str):
+def get_network_name(series_name: str) -> str:
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
     query = """
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -27,7 +29,11 @@ def get_network_name(series_name: str):
         # print('%s: %s' % (result["label"]["xml:lang"], result["label"]["value"]))
 
 
-def get_wikidata_uri(series_name: str):
+def strip_wikidata_entity(uri: str) -> str:
+    return uri[len("http://www.wikidata.org/entity/"):]
+
+
+def get_wikidata_uri(series_name: str) -> str:
     sparql = SPARQLWrapper("http://dbpedia.org/sparql")
     query = """
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -51,15 +57,15 @@ def get_wikidata_uri(series_name: str):
     results = sparql.query().convert()
 
     for result in results["results"]["bindings"]:
-        return result['sameas']['value']
+        return strip_wikidata_entity(result['sameas']['value'])
 
 
-def get_wikidata_actors(series_uri: str):
+def get_wikidata_actor_uris(series_uri: str) -> List[str]:
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
     query = """
         SELECT ?show ?actor
         WHERE {
-            BIND(wd:Q22906308 as ?show) .
+            BIND(wd:""" + series_uri + """ as ?show) .
             ?show wdt:P161 ?actor .
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
@@ -69,12 +75,48 @@ def get_wikidata_actors(series_uri: str):
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
+    actors = [strip_wikidata_entity(result['actor']['value']) for result in results["results"]["bindings"]]
+    return actors
+
+
+class Actor:
+    def __init__(self, name: str, date_of_birth: str):
+        self.name = name
+        self.date_of_birth = date_of_birth
+
+    def to_string(self):
+        return self.name + " was born " + self.date_of_birth
+
+
+def get_actor_info_from_wikidata(actor_uri: str) -> Actor:
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+    query = """
+        SELECT ?actor ?actorLabel ?dateofbirth
+        WHERE {
+            BIND(wd:""" + actor_uri + """ as ?actor) .
+            ?actor wdt:P569 ?dateofbirth .
+            SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
+            
+        }
+        """
+    sparql.setQuery(query)
+    print(query)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
     for result in results["results"]["bindings"]:
-        return result['actor']['value']
+        name = result['actorLabel']['value']
+        bod = result['dateofbirth']['value']
+        return Actor(name=name, date_of_birth=bod)
+
+
+def get_series_actors(series_name: str) -> List[Actor]:
+    uri = get_wikidata_uri(series_name)
+    actor_uris = get_wikidata_actor_uris(uri)
+    actors = [get_actor_info_from_wikidata(actor_uri) for actor_uri in actor_uris]
+    return actors
+
 
 if __name__ == "__main__":
     # nn = get_network_name("Gossip Girl")
-    # uri = get_wikidata_uri("Stranger Things")
-    # print(uri)
-    actors = get_wikidata_actors("")
-    print(actors)
+    get_series_actors("Stranger Things")
