@@ -31,14 +31,20 @@ def improve_webpage(url: str):
     print("network name:", net_name)
     if net_name:
         plot_summary_tag = soup.find(class_="plot_summary")
+        credit_summary_item = soup.new_tag("div")
+        credit_summary_item['class'] = "credit_summary_item"
+
         network_tag = soup.new_tag("h4")
         network_tag['class'] = "inline"
         network_tag.string = "Network:"
-        plot_summary_tag.append(network_tag)
+        credit_summary_item.append(network_tag)
 
         network_name_tag = soup.new_tag("a", href=net_name)
         network_name_tag.string = net_name.split('/')[-1]
-        network_tag.append(network_name_tag)
+        credit_summary_item.append(network_name_tag)
+
+        plot_summary_tag.append(credit_summary_item)
+
         print(plot_summary_tag)
 
     with open(directory + full_title + ".htm", 'w') as f:
