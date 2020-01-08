@@ -34,6 +34,11 @@ imdb-webpage-improvement can be run with:
 $ python3.8 web_scrapper.py
 ```
 
+### Working with DBTropes
+
+Please download DBTropes here http://dbtropes.org/static/dbtropes.zip.
+Then please unpack the files to the main directory and rename the 'nt' file to 'dbtropes.nt'.
+
 ## TODO
 1. Add doctests
 2. Use other information sources than dbpedia (mentioned in documentation)
