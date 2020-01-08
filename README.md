@@ -22,6 +22,12 @@ You need to install the required packages. You can do that by running
 $ pip3.8 install -r requirements.txt
 ```
 
+In this project we're using WikiData. On some OSes (tested on MacOS) you need to install required certificates.
+Please do that by running:
+```bash
+$ python install_certificates.py
+``` 
+
 ## Quick start
 imdb-webpage-improvement can be run with:
 ```bash
