@@ -78,40 +78,59 @@ class WebPage():
 
             # print(plot_summary_tag)
 
-    def create_actor_row(self, actor):
+    def create_actor_row(self, actor, i: int):
         row = self.soup.new_tag("tr")
+        row['class'] = 'odd' if i % 2 == 1 else "even"
 
+        # Add actor name cell
         actor_tag = self.soup.new_tag("td")
-        actor_name_tag = self.soup.new_tag("a", href=actor.uri)
-        actor_name_tag.string = actor.name
-        actor_tag.append(actor_name_tag)
+        actor_a_tag = self.soup.new_tag("a", href=actor.uri)
+        actor_a_tag.string = actor.name
+        actor_tag.append(actor_a_tag)
 
+        # Add actor date of birth cell
         dob_actor_tag = self.soup.new_tag("td")
-        if actor.date_of_birth:
-            dob_actor_tag.string = actor.date_of_birth
+        dob_actor_tag.string = actor.date_of_birth if actor.date_of_birth else ""
+
+        # Add actor handles cell
+        handles_tag = self.soup.new_tag("td")
+        for website, handle in actor.handles.items():
+            print(handle)
+            handle_a_tag = self.soup.new_tag("a", href=handle)
+            handle_a_tag.string = website
+            handles_tag.append(handle_a_tag)
+        # handles_tag.string = ', '
 
         row.append(actor_tag)
         row.append(dob_actor_tag)
+        row.append(handles_tag)
         return row
 
     def create_table_header(self):
         header_tag = self.soup.new_tag("tr")
 
+        # Add actor name header cell
         header_actor_tag = self.soup.new_tag("th")
-        header_actor_tag.string = "Actor"
+        header_actor_tag.string = "Name"
 
+        # Add actor date of birth  header cell
         dob_actor_tag = self.soup.new_tag("th")
         dob_actor_tag.string = "Date of birth"
 
+        # Add actor handles header cell
+        handles_tag = self.soup.new_tag("th")
+        handles_tag.string = "Handles"
+
         header_tag.append(header_actor_tag)
         header_tag.append(dob_actor_tag)
+        header_tag.append(handles_tag)
 
         return header_tag
 
     def add_actors_info(self, series_name):
         actor_names = self.get_most_important_actors()
         actors = get_series_actors(series_name, actor_names)
-        print("actors:", [a.to_string() for a in actors.values()])
+        print("actors:", [a.to_string() for a in actors])
         if len(actors) > 0:
             plot_summary_tag = self.soup.find(class_="plot_summary")
             credit_summary_item = self.soup.new_tag("div")
@@ -123,14 +142,14 @@ class WebPage():
             credit_summary_item.append(actors_tag)
 
             table_tag = self.soup.new_tag("table")
+            table_tag['class'] = "cast_list"
 
             header_tag = self.create_table_header()
             table_tag.append(header_tag)
 
-            for actor_name in actor_names:
-                if actor_name in actors.keys():
-                    row = self.create_actor_row(actor=actors[actor_name])
-                    table_tag.append(row)
+            for i, actor in enumerate(actors):
+                row = self.create_actor_row(actor=actor, i=i)
+                table_tag.append(row)
             credit_summary_item.append(table_tag)
             plot_summary_tag.append(credit_summary_item)
 
@@ -149,13 +168,13 @@ class WebPage():
 
 def main():
     urls = [
-        'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',
-        'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',
-        'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0',
-        'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',
-        'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',
-        'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',
-        'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'
+        # 'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1', # Altered Carbon
+        # 'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0', # Silicon Valley
+        # 'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0', # Singapore Social
+        'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
+        'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
+        # 'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1', # You Me Her
+        'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'  # Friends
     ]
     import os
     if not os.path.exists(directory):

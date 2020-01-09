@@ -9,4 +9,4 @@ class Actor:
         self.handles: Dict[str, str] = handles
 
     def to_string(self):
-        return self.name + " was born " + self.date_of_birth
+        return self.name + " was born " + self.date_of_birth if self.date_of_birth else self.name
