@@ -7,136 +7,144 @@ from send_sparql_query import get_network_name, get_series_actors
 directory = 'web_pages/'
 
 
-def grab_original_title(soup: bs):
-    if (original_title := soup.find("div", attrs={"class": "originalTitle"})) is not None:
-        original_title = original_title.text
-        index = original_title.find(" (original title)")
-        series_name = original_title[:index]
-        return series_name
-    return None
+class WebPage():
+    def __init__(self, url: str):
+        self.url: str = url
+        self.soup: bs = self.__init_soup__()
 
+    def __init_soup__(self):
+        response = requests.get(self.url)
+        return bs(response.text, 'html.parser')
 
-def add_tropes_info(soup, series_name):
-    tropes = retrieve_tropes(series_name)
-    if tropes:
-        plot_summary_tag = soup.find(class_="plot_summary")
-        credit_summary_item = soup.new_tag("div")
-        credit_summary_item['class'] = "credit_summary_item"
+    def serialize(self, full_title):
+        with open(directory + full_title + ".htm", 'w') as f:
+            f.write(self.soup.prettify())
 
-        tropes_tag = soup.new_tag("h4")
-        tropes_tag['class'] = "inline"
-        tropes_tag.string = "Tropes:"
-        credit_summary_item.append(tropes_tag)
+    def grab_original_title(self):
+        if (original_title := self.soup.find("div", attrs={"class": "originalTitle"})) is not None:
+            original_title = original_title.text
+            index = original_title.find(" (original title)")
+            series_name = original_title[:index]
+            return series_name
+        return None
 
-        t = tropes[0]
-        tropes_name_tag = soup.new_tag("a", href=t[0])
-        tropes_name_tag.string = t[1]
-        credit_summary_item.append(tropes_name_tag)
-        plot_summary_tag.append(credit_summary_item)
-        print(plot_summary_tag)
+    def add_tropes_info(self, series_name):
+        tropes = retrieve_tropes(series_name)
+        if tropes:
+            plot_summary_tag = self.soup.find(class_="plot_summary")
+            credit_summary_item = self.soup.new_tag("div")
+            credit_summary_item['class'] = "credit_summary_item"
 
+            tropes_tag = self.soup.new_tag("h4")
+            tropes_tag['class'] = "inline"
+            tropes_tag.string = "Tropes:"
+            credit_summary_item.append(tropes_tag)
 
-def get_most_important_actors(soup: bs):
-    el = soup.find("div", attrs={"class": "article", "id": "titleCast"})
-    table = el.find("table", attrs={"class": "cast_list"})
-    actor_names = []
-    for row in table.findAll('tr')[1:]:
-        if first_column := row.find('td', attrs={"class": "primary_photo"}):
-            actor_name = first_column.find("a").find("img")["title"]
-            actor_names.append(actor_name)
-    return actor_names
+            t = tropes[0]
+            tropes_name_tag = self.soup.new_tag("a", href=t[0])
+            tropes_name_tag.string = t[1]
+            credit_summary_item.append(tropes_name_tag)
+            plot_summary_tag.append(credit_summary_item)
+            print(plot_summary_tag)
 
+    def get_most_important_actors(self):
+        el = self.soup.find("div", attrs={"class": "article", "id": "titleCast"})
+        table = el.find("table", attrs={"class": "cast_list"})
+        actor_names = []
+        for row in table.findAll('tr')[1:]:
+            if first_column := row.find('td', attrs={"class": "primary_photo"}):
+                actor_name = first_column.find("a").find("img")["title"]
+                actor_names.append(actor_name)
+        return actor_names
 
-def add_network_name_info(soup, series_name):
-    net_name = get_network_name(series_name)
-    print("network name:", net_name)
-    if net_name:
-        plot_summary_tag = soup.find(class_="plot_summary")
-        credit_summary_item = soup.new_tag("div")
-        credit_summary_item['class'] = "credit_summary_item"
+    def add_network_name_info(self, series_name):
+        net_name = get_network_name(series_name)
+        print("network name:", net_name)
+        if net_name:
+            plot_summary_tag = self.soup.find(class_="plot_summary")
+            credit_summary_item = self.soup.new_tag("div")
+            credit_summary_item['class'] = "credit_summary_item"
 
-        network_tag = soup.new_tag("h4")
-        network_tag['class'] = "inline"
-        network_tag.string = "Network:"
-        credit_summary_item.append(network_tag)
+            network_tag = self.soup.new_tag("h4")
+            network_tag['class'] = "inline"
+            network_tag.string = "Network:"
+            credit_summary_item.append(network_tag)
 
-        network_name_tag = soup.new_tag("a", href=net_name)
-        network_name_tag.string = net_name.split('/')[-1]
-        credit_summary_item.append(network_name_tag)
+            network_name_tag = self.soup.new_tag("a", href=net_name)
+            network_name_tag.string = net_name.split('/')[-1]
+            credit_summary_item.append(network_name_tag)
 
-        plot_summary_tag.append(credit_summary_item)
+            plot_summary_tag.append(credit_summary_item)
 
-        # print(plot_summary_tag)
+            # print(plot_summary_tag)
 
+    def create_actor_row(self, actor):
+        row = self.soup.new_tag("tr")
 
-def add_actors_info(soup, series_name, actor_names):
-    actors = get_series_actors(series_name, actor_names)
-    print("actors:", [a.to_string() for a in actors.values()])
-    if len(actors) > 0:
-        plot_summary_tag = soup.find(class_="plot_summary")
-        credit_summary_item = soup.new_tag("div")
-        credit_summary_item['class'] = "credit_summary_item"
+        actor_tag = self.soup.new_tag("td")
+        actor_name_tag = self.soup.new_tag("a", href=actor.uri)
+        actor_name_tag.string = actor.name
+        actor_tag.append(actor_name_tag)
 
-        actors_tag = soup.new_tag("h4")
-        actors_tag['class'] = "inline"
-        actors_tag.string = "Actors:"
-        credit_summary_item.append(actors_tag)
+        dob_actor_tag = self.soup.new_tag("td")
+        if actor.date_of_birth:
+            dob_actor_tag.string = actor.date_of_birth
 
-        table_tag = soup.new_tag("table")
-        header_tag = soup.new_tag("tr")
+        row.append(actor_tag)
+        row.append(dob_actor_tag)
+        return row
 
-        header_actor_tag = soup.new_tag("th")
+    def create_table_header(self):
+        header_tag = self.soup.new_tag("tr")
+
+        header_actor_tag = self.soup.new_tag("th")
         header_actor_tag.string = "Actor"
 
-        dob_actor_tag = soup.new_tag("th")
+        dob_actor_tag = self.soup.new_tag("th")
         dob_actor_tag.string = "Date of birth"
 
         header_tag.append(header_actor_tag)
         header_tag.append(dob_actor_tag)
 
-        table_tag.append(header_tag)
+        return header_tag
 
-        for actor_name in actor_names:
-            if actor_name in actors.keys():
-                # print(actor_name)
-                actor = actors[actor_name]
-                row = soup.new_tag("tr")
+    def add_actors_info(self, series_name):
+        actor_names = self.get_most_important_actors()
+        actors = get_series_actors(series_name, actor_names)
+        print("actors:", [a.to_string() for a in actors.values()])
+        if len(actors) > 0:
+            plot_summary_tag = self.soup.find(class_="plot_summary")
+            credit_summary_item = self.soup.new_tag("div")
+            credit_summary_item['class'] = "credit_summary_item"
 
-                actor_tag = soup.new_tag("td")
-                actor_name_tag = soup.new_tag("a", href=actor.uri)
-                actor_name_tag.string = actor.name
-                actor_tag.append(actor_name_tag)
+            actors_tag = self.soup.new_tag("h4")
+            actors_tag['class'] = "inline"
+            actors_tag.string = "Actors:"
+            credit_summary_item.append(actors_tag)
 
-                dob_actor_tag = soup.new_tag("td")
-                dob_actor_tag.string = actor.date_of_birth
+            table_tag = self.soup.new_tag("table")
 
-                row.append(actor_tag)
-                row.append(dob_actor_tag)
+            header_tag = self.create_table_header()
+            table_tag.append(header_tag)
 
-                table_tag.append(row)
-        credit_summary_item.append(table_tag)
-        plot_summary_tag.append(credit_summary_item)
+            for actor_name in actor_names:
+                if actor_name in actors.keys():
+                    row = self.create_actor_row(actor=actors[actor_name])
+                    table_tag.append(row)
+            credit_summary_item.append(table_tag)
+            plot_summary_tag.append(credit_summary_item)
 
+    def improve(self):
+        full_title = self.soup.find("title").text
+        if not (series_name := self.grab_original_title()):
+            index = full_title.find(" (TV Series")
+            series_name = full_title[:index]
 
-def improve_webpage(url: str):
-    response = requests.get(url)
-
-    soup = bs(response.text, 'html.parser')
-    # print(response.text)
-
-    full_title = soup.find("title").text
-    if not (series_name := grab_original_title(soup)):
-        index = full_title.find(" (TV Series")
-        series_name = full_title[:index]
-
-    print(full_title, "XXX", series_name)
-    add_network_name_info(soup, series_name)
-    add_tropes_info(soup, series_name)
-    actors = get_most_important_actors(soup)
-    add_actors_info(soup, series_name, actors)
-
-    with open(directory + full_title + ".htm", 'w') as f:
-        f.write(soup.prettify())
+        print(full_title, "XXX", series_name)
+        self.add_network_name_info(series_name)
+        # self.add_tropes_info(series_name)
+        self.add_actors_info(series_name)
+        self.serialize(full_title)
 
 
 def main():
@@ -154,7 +162,8 @@ def main():
         os.makedirs(directory)
 
     for url in urls:
-        improve_webpage(url)
+        wp = WebPage(url)
+        wp.improve()
 
 
 if __name__ == "__main__":

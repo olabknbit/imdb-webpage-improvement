@@ -5,6 +5,7 @@ import requests
 from w3lib.html import get_base_url
 
 
+# TODO olabknbit: Not used. Probably delete.
 def main():
     pp = pprint.PrettyPrinter(indent=2)
     url = 'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1'
