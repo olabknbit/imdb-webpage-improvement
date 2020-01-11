@@ -30,14 +30,24 @@ Please do that by running:
 $ python install_certificates.py
 ``` 
 
-#### Working with DBTropes
+### Working with DBTropes
 
-Please download DBTropes; available here: http://dbtropes.org/static/dbtropes.zip.
+Please download DBTropes here http://dbtropes.org/static/dbtropes.zip.
 Then please unpack the files to the main directory and rename the 'nt' file to 'dbtropes.nt'.
-
+Run setup.py script to create missing series_data.nt file 
+```bash
+python setup.py
+```
 
 ## Quick start
 imdb-webpage-improvement can be run with:
 ```bash
 $ python3.8 web_scrapper.py
 ```
+
+
+## TODO
+1. Add doctests
+2. Use other information sources than dbpedia (mentioned in documentation)
+3. Info about all actors - what other movies they starred in etc.
+
