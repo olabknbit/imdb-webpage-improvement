@@ -1,4 +1,7 @@
 __pycache__/
 .idea/
+dbtropes.nt
+dbtropes.zip
+stat-20160701.txt
 venv/
 web_pages/
