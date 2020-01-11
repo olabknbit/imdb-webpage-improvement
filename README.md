@@ -39,7 +39,6 @@ Run setup.py script to create missing series_data.nt file
 python setup.py
 ```
 
-
 ## Quick start
 imdb-webpage-improvement can be run with:
 ```bash
@@ -51,3 +50,4 @@ $ python3.8 web_scrapper.py
 1. Add doctests
 2. Use other information sources than dbpedia (mentioned in documentation)
 3. Info about all actors - what other movies they starred in etc.
+
