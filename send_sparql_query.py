@@ -62,13 +62,20 @@ def get_wikidata_uri(series_name: str) -> str:
         return strip_wikidata_entity(result['sameas']['value'])
 
 
-def get_wikidata_actor_uris(series_uri: str) -> List[Actor]:
+def get_wikidata_actor_uris(series_uri: str) -> Dict[str, Actor]:
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
     query = """
-        SELECT ?show ?actor ?actorLabel
+        SELECT ?show ?actor ?actorLabel ?dateofbirth ?RottenTomatoes ?Instagram ?Twitter ?Facebook
         WHERE {
             BIND(wd:""" + series_uri + """ as ?show) .
             ?show wdt:P161 ?actor .
+             OPTIONAL {
+                    ?actor wdt:P569 ?dateofbirth .
+                    ?actor wdt:P1258 ?RottenTomatoes . 
+                    ?actor wdt:P2003 ?Instagram .
+                    ?actor wdt:P2002 ?Twitter .
+                    ?actor wdt:P2013 ?Facebook .
+                }
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
     """
@@ -77,55 +84,43 @@ def get_wikidata_actor_uris(series_uri: str) -> List[Actor]:
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
 
-    actors = []
+    handles_names = {"RottenTomatoes": "https://www.rottentomatoes.com/",
+                     "Instagram": "https://www.instagram.com/",
+                     "Twitter": "https://twitter.com/",
+                     "Facebook": "https://www.facebook.com/"}
+    # print(results["results"]["bindings"])
+    actors = {}
     for result in results["results"]["bindings"]:
-        uri = strip_wikidata_entity(result['actor']['value'])
-        actors.append(Actor(uri=uri, name=result['actorLabel']['value']))
+        uri = strip_wikidata_entity(result["actor"]["value"])
+        name = result["actorLabel"]["value"]
+        date_of_birth = result['dateofbirth']['value'] if "dateofbirth" in result.keys() else None
+
+        handles = {handle: handles_names[handle] + result[handle]["value"] for handle in handles_names.keys()
+                   if handle in result.keys() and result[handle]['value'] is not None}
+        actors[name] = Actor(uri=uri, name=name, date_of_birth=date_of_birth, handles=handles)
 
     return actors
 
 
-def get_actor_info_from_wikidata(actor_uri: str) -> Actor:
-    try:
-        sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-        query = """
-            SELECT ?actor ?actorLabel ?dateofbirth
-            WHERE {
-                BIND(wd:""" + actor_uri + """ as ?actor) .
-                ?actor wdt:P569 ?dateofbirth .
-                SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
-                
-            }
-            """
-        sparql.setQuery(query)
-        # print(query)
-        sparql.setReturnFormat(JSON)
-        results = sparql.query().convert()
-
-        for result in results["results"]["bindings"]:
-            uri = result['actor']['value']
-            name = result['actorLabel']['value']
-            bod = result['dateofbirth']['value']
-            return Actor(uri=uri, name=name, date_of_birth=bod)
-    except Exception as e:
-        print(e.args)
-
-
-def get_series_actors(series_name: str, names_to_filter=None) -> Dict[str, Actor]:
+def get_series_actors(series_name: str, names_to_put_first: List[str], show_all=True) -> List[Actor]:
     uri = get_wikidata_uri(series_name)
     if uri is None:
-        return {}
-    actor_uris = get_wikidata_actor_uris(uri)
-    actors = {}
-    if names_to_filter:
-        for actor in actor_uris:
-            if actor.name in names_to_filter:
-                if actor := get_actor_info_from_wikidata(actor.uri):
-                    actors[actor.name] = actor
+        return []
+    all_actors = get_wikidata_actor_uris(uri)
+    sorted_actors = []
 
-    return actors
+    for name in names_to_put_first:
+        if name in all_actors.keys():
+            sorted_actors.append(all_actors[name])
+
+    if show_all:
+        for name in all_actors.keys():
+            if name not in names_to_put_first:
+                sorted_actors.append(all_actors[name])
+
+    return sorted_actors
 
 
 if __name__ == "__main__":
     # nn = get_network_name("Gossip Girl")
-    get_series_actors("Stranger Things")
+    get_series_actors("Stranger Things", [])
