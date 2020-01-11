@@ -1,21 +1,9 @@
-import re
 from rdflib import Graph
 from rdflib import URIRef
-from rdflib.namespace import RDFS
-
-
-def parse_dbtropes():
-    series_data = open('series_data.nt', 'w')
-    with open('dbtropes.nt') as rawfile:
-        for line in rawfile:
-            if re.match("<http://dbtropes.org/resource/Series/", line):
-                series_data.write(line)
-        series_data.close()
 
 
 def retrieve_tropes(seriesName):
-    # uncomment when running for the first time
-    # parse_dbtropes()
+
     g = Graph()
     g.parse("series_data.nt", format="nt")
 
