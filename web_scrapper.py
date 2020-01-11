@@ -161,7 +161,7 @@ class WebPage():
 
         print(full_title, "XXX", series_name)
         self.add_network_name_info(series_name)
-        # self.add_tropes_info(series_name)
+        self.add_tropes_info(series_name)
         self.add_actors_info(series_name)
         self.serialize(full_title)
 

@@ -2,22 +2,21 @@ from rdflib import Graph
 from rdflib import URIRef
 
 
-def retrieve_tropes(seriesName):
-
+def retrieve_tropes(series_name):
     g = Graph()
     g.parse("series_data.nt", format="nt")
 
-    seriesFullName = URIRef("http://dbtropes.org/resource/Series/"+seriesName)
-    if (seriesFullName, None, None) in g:
-        print("This graph contains triples about "+seriesName)
+    series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name)
+    if (series_full_name, None, None) in g:
+        print("This graph contains triples about " + series_name)
 
-    hasFeature = URIRef("http://skipforward.net/skipforward/resource/seeder/skipinions/hasFeature")
+    has_feature = URIRef("http://skipforward.net/skipforward/resource/seeder/skipinions/hasFeature")
     tropes_list = []
-    for o in g.objects(seriesFullName, hasFeature):
+    for o in g.objects(series_full_name, has_feature):
 
-        print(seriesName+" have the trope: %s"%o)
+        print(series_name + " have the trope: %s" % o)
         tropes = o.split('/')
-        print(seriesName + " have the trope: %s" %tropes[5])
+        print(series_name + " have the trope: %s" % tropes[5])
 
         tropes_list.append((o, tropes[5]))
 

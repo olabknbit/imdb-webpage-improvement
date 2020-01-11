@@ -30,11 +30,9 @@ Please do that by running:
 $ python install_certificates.py
 ``` 
 
-### Working with DBTropes
+#### Working with DBTropes
 
-Please download DBTropes here http://dbtropes.org/static/dbtropes.zip.
-Then please unpack the files to the main directory and rename the 'nt' file to 'dbtropes.nt'.
-Run setup.py script to create missing series_data.nt file 
+Run `setup.py` script to create missing `series_data.nt` file 
 ```bash
 python setup.py
 ```
