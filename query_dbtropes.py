@@ -4,7 +4,8 @@ from rdflib import URIRef
 
 def retrieve_tropes(series_name):
     g = Graph()
-    g.parse("series_data.nt", format="nt")
+    series_data_name = 'series_data_'+str(series_name).lower()+'.nt'
+    g.parse(series_data_name, format="nt")
 
     series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name)
     if (series_full_name, None, None) in g:

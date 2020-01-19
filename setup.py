@@ -39,5 +39,16 @@ def parse_dbtropes():
                 series_data_file.write(line)
 
 
+def prepare_data_for_given_series(series_name):
+    series_data_name = 'series_data_'+str(series_name).lower()+'.nt'
+    with open('series_data.nt') as raw_file, open(series_data_name, 'w') as series_data_file:
+        for line in raw_file:
+            if re.match("<http://dbtropes.org/resource/Series/"+str(series_name), line):
+                series_data_file.write(line)
+
+
 if __name__ == "__main__":
+    scope = ['Friends']
     parse_dbtropes()
+    for series in scope:
+        prepare_data_for_given_series(series)
