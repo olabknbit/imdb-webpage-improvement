@@ -43,10 +43,12 @@ class WebPage():
             for i in range(6):
                 t = tropes[i]
                 tropes_name_tag = self.soup.new_tag("a", href=t[0])
-                tropes_name_tag.string = t[1]+" "
-                tropes_tag.append(tropes_name_tag)
+                tropes_name_tag.string = t[1]
+                credit_summary_item.append(tropes_name_tag)
 
-            credit_summary_item.append(tropes_tag)
+                comma = self.soup.new_string(", ")
+                credit_summary_item.append(comma)
+
             plot_summary_tag.append(credit_summary_item)
             print(plot_summary_tag)
 
@@ -172,7 +174,7 @@ class WebPage():
 def main():
     urls = [
         # 'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1', # Altered Carbon
-        #'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0', # Silicon Valley
+        # 'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0', # Silicon Valley
         # 'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0', # Singapore Social
         # 'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
         # 'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
