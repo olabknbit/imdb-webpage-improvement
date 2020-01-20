@@ -91,7 +91,7 @@ class WebPage():
 
         # Add actor date of birth cell
         dob_actor_tag = self.soup.new_tag("td")
-        dob_actor_tag.string = actor.date_of_birth if actor.date_of_birth else ""
+        dob_actor_tag.string = actor.date_of_birth[:len("1971-04-12")] if actor.date_of_birth else ""
 
         # Add actor handles cell
         handles_tag = self.soup.new_tag("td")
