@@ -1,10 +1,20 @@
+from typing import List, Tuple, Any
+
 from rdflib import Graph
 from rdflib import URIRef
 
+from filenames import *
 
-def retrieve_tropes(series_name):
+
+def retrieve_tropes(series_name: str) -> List[Tuple[Any, str]]:
+    """
+    Retrieve series related tropes from local dbtropes series datastore.
+    :param series_name (str): Name of a series
+    :return List[Tuple[Any, str]]: List of tropes occurring in that series
+    TODO(bulka): what is in the tuple except for series name? Update docstring pls.
+    """
     g = Graph()
-    series_data_name = 'series_data_'+str(series_name).lower()+'.nt'
+    series_data_name = get_series_dbtropes_filename(series_name)
     g.parse(series_data_name, format="nt")
 
     series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name)
@@ -14,7 +24,6 @@ def retrieve_tropes(series_name):
     has_feature = URIRef("http://skipforward.net/skipforward/resource/seeder/skipinions/hasFeature")
     tropes_list = []
     for o in g.objects(series_full_name, has_feature):
-
         print(series_name + " have the trope: %s" % o)
         tropes = o.split('/')
         print(series_name + " have the trope: %s" % tropes[5])
