@@ -177,7 +177,8 @@ def main():
         # 'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
         # 'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
         # 'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1', # You Me Her
-        # 'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'  # Friends
+        # 'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1',  # Friends
+        'https://www.imdb.com/title/tt1578873/?ref_=nv_sr_srsg_0'  # Pretty Little Liars
     ]
     import os
     if not os.path.exists(directory):

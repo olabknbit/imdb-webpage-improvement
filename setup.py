@@ -83,7 +83,7 @@ def prepare_data_for_given_series(series_name: str, verbose: bool) -> None:
             print(step_name)
         with open(SERIES_DATA_FILENAME, 'r') as raw_file, open(new_series_data_filename, 'w') as series_data_file:
             for line in raw_file:
-                if re.match("<http://dbtropes.org/resource/Series/" + str(series_name), line):
+                if re.match("<http://dbtropes.org/resource/Series/" + str(series_name.replace(' ', '')), line):
                     series_data_file.write(line)
     elif verbose:
         print("Skipping step: \"%s\"" % step_name)
@@ -102,5 +102,5 @@ def run_setup(series_names: List[str], verbose: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    series_names = ['Friends', 'Stranger Things']
+    series_names = ['Friends', 'Stranger Things', 'Silicon Valley']
     run_setup(series_names, verbose=True)
