@@ -74,6 +74,7 @@ class WebPage():
     def add_network_name_info(self, series: Series):
         net_name = series.network
         print("network name:", net_name)
+        # TODO(olab): crop network name if "(TV_channel)" at the end
         if net_name:
             network_name_tag = self.soup.new_tag("a", href=net_name)
             network_name_tag.string = net_name.split('/')[-1]
