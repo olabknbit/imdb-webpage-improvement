@@ -172,15 +172,14 @@ class WebPage():
 
 
 def main():
+    # TODO(olab): Fix- Series in None if series not in dbpedia and script crashes (Singapore Social, You)
     urls = [
-        # 'https://www.imdb.com/title/tt7335184/?ref_=fn_al_tt_1', # You
-        # 'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1', # Altered Carbon
-        # 'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0', # Silicon Valley
-        # 'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0', # Singapore Social
-        # 'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
-        # 'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
-        # 'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1', # You Me Her
-        # 'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1',  # Friends
+        'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',  # Altered Carbon
+        'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',  # Silicon Valley
+        'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
+        'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
+        'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',  # You Me Her
+        'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1',  # Friends
         'https://www.imdb.com/title/tt1578873/?ref_=nv_sr_srsg_0'  # Pretty Little Liars
     ]
     import os
