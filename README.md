@@ -30,13 +30,6 @@ Please do that by running:
 $ python install_certificates.py
 ``` 
 
-#### Working with DBTropes
-
-Run `setup.py` script to create missing `series_data.nt` file 
-```bash
-python setup.py
-```
-
 ## Quick start
 imdb-webpage-improvement can be run with:
 ```bash
