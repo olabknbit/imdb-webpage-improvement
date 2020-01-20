@@ -19,9 +19,10 @@ def get_all_filenames(directory: str) -> List[str]:
     return onlyfiles
 
 
-def parse_dbtropes():
+def parse_dbtropes(verbose: bool) -> None:
     """
     Downloads the dbtropes database and parses only the series data into separate file for faster access.
+    :param verbose (bool): verbose indicates whether to print progress messages
     :return: None
     """
     dbtropes_zip_filename = 'dbtropes.zip'
@@ -30,16 +31,19 @@ def parse_dbtropes():
     step_name = "Downloading dbtropes database"
     if not os.path.isfile(dbtropes_zip_filename):
         # Download DbTropes resource
-        print(step_name)
+        if verbose:
+            print(step_name)
         url = "http://dbtropes.org/static/dbtropes.zip"
         wget.download(url, dbtropes_zip_filename)
-    else:
-        print("Skipping step: '%s'" % step_name)
+    elif verbose:
+        print("Skipping step: \"%s\"" % step_name)
 
     step_name = "Unzipping dbtropes database"
     if not os.path.isfile(dbtropes_filename):
         # Unzip DbTropes resource
-        print(step_name)
+
+        if verbose:
+            print(step_name)
         with ZipFile(dbtropes_zip_filename, "r") as f:
             f.extractall(DBTROPES_DIR)
 
@@ -48,36 +52,55 @@ def parse_dbtropes():
             old_path = os.path.join(DBTROPES_DIR, filename)
             new_path = os.path.join(DBTROPES_DIR, filename.split('-')[0] + '.nt')
             os.rename(old_path, new_path)
-    else:
-        print("Skipping step: '%s'" % step_name)
+    elif verbose:
+        print("Skipping step: \"%s\"" % step_name)
 
     step_name = "Parsing dbtropes database to keep only series related info"
     if not os.path.isfile(SERIES_DATA_FILENAME):
-        print(step_name)
+        if verbose:
+            print(step_name)
         # Grab only Series relevant information from DbTropes file and save it in a separate file for faster parsing
         with open(dbtropes_filename) as raw_file, open(SERIES_DATA_FILENAME, 'w') as series_data_file:
             for line in raw_file:
                 if re.match("<http://dbtropes.org/resource/Series/", line):
                     series_data_file.write(line)
-    else:
-        print("Skipping step: '%s'" % step_name)
+    elif verbose:
+        print("Skipping step: \"%s\"" % step_name)
 
 
-def prepare_data_for_given_series(series_name):
+def prepare_data_for_given_series(series_name: str, verbose: bool) -> None:
+    """
+    Parses dbtropes series database to grab info related to series with series_name.
+    This is an optimization process, as the dbtropes databse is quite big and querying the whole database is very slow.
+    :param series_name (str): Name of the series
+    :param verbose (bool): whether to print progress messages
+    :return: None
+    """
     new_series_data_filename = get_series_dbtropes_filename(series_name)
     step_name = "Parsing dbtropes series database to grab '%s' related info" % series_name
     if not os.path.isfile(new_series_data_filename):
-        print(step_name)
+        if verbose:
+            print(step_name)
         with open(SERIES_DATA_FILENAME, 'r') as raw_file, open(new_series_data_filename, 'w') as series_data_file:
             for line in raw_file:
                 if re.match("<http://dbtropes.org/resource/Series/" + str(series_name), line):
                     series_data_file.write(line)
-    else:
-        print("Skipping step: '%s'" % step_name)
+    elif verbose:
+        print("Skipping step: \"%s\"" % step_name)
+
+
+def run_setup(series_names: List[str], verbose: bool = False) -> None:
+    """
+    Run dbtropes setup
+    :param series_names (List[str]): Names of tv series
+    :param verbose (bool): whether to print progress messages
+    :return: None
+    """
+    parse_dbtropes(verbose)
+    for series in series_names:
+        prepare_data_for_given_series(series, verbose)
 
 
 if __name__ == "__main__":
-    scope = ['Friends', 'Stranger Things']
-    parse_dbtropes()
-    for series in scope:
-        prepare_data_for_given_series(series)
+    series_names = ['Friends', 'Stranger Things']
+    run_setup(series_names, verbose=True)

@@ -17,7 +17,7 @@ def retrieve_tropes(series_name: str) -> List[Tuple[Any, str]]:
     series_data_name = get_series_dbtropes_filename(series_name)
     g.parse(series_data_name, format="nt")
 
-    series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name)
+    series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name.replace(' ', ''))
     if (series_full_name, None, None) in g:
         print("This graph contains triples about " + series_name)
 

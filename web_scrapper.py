@@ -41,7 +41,7 @@ class WebPage():
         n_tags = len(tags)
         for i, tag in enumerate(tags):
             credit_summary_item.append(tag)
-            if i < n_tags -1:
+            if i < n_tags - 1:
                 comma = self.soup.new_string(", ")
                 credit_summary_item.append(comma)
 
@@ -157,6 +157,9 @@ class WebPage():
         if not (series_name := self.grab_original_title()):
             index = full_title.find(" (TV Series")
             series_name = full_title[:index]
+        print(series_name)
+        from setup import prepare_data_for_given_series
+        prepare_data_for_given_series(series_name, False)
 
         print(full_title, "XXX", series_name)
         self.add_network_name_info(series_name)
@@ -167,13 +170,14 @@ class WebPage():
 
 def main():
     urls = [
+        # 'https://www.imdb.com/title/tt7335184/?ref_=fn_al_tt_1', # You
         # 'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1', # Altered Carbon
         # 'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0', # Silicon Valley
         # 'https://www.imdb.com/title/tt11194508/?ref_=nv_sr_srsg_0', # Singapore Social
         # 'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
         # 'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
         # 'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1', # You Me Her
-        'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'  # Friends
+        # 'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1'  # Friends
     ]
     import os
     if not os.path.exists(directory):
@@ -185,4 +189,7 @@ def main():
 
 
 if __name__ == "__main__":
+    from setup import parse_dbtropes
+
+    parse_dbtropes(verbose=False)
     main()
