@@ -28,29 +28,36 @@ class WebPage():
             return series_name
         return None
 
+    def add_new_element_to_plot_summary_tag(self, name, tags):
+        plot_summary_tag = self.soup.find(class_="plot_summary")
+        credit_summary_item = self.soup.new_tag("div")
+        credit_summary_item['class'] = "credit_summary_item"
+
+        tropes_tag = self.soup.new_tag("h4")
+        tropes_tag['class'] = "inline"
+        tropes_tag.string = name + ":"
+        credit_summary_item.append(tropes_tag)
+
+        n_tags = len(tags)
+        for i, tag in enumerate(tags):
+            credit_summary_item.append(tag)
+            if i < n_tags -1:
+                comma = self.soup.new_string(", ")
+                credit_summary_item.append(comma)
+
+        plot_summary_tag.append(credit_summary_item)
+        print(plot_summary_tag)
+
     def add_tropes_info(self, series_name):
         tropes = retrieve_tropes(series_name)
         if tropes:
-            plot_summary_tag = self.soup.find(class_="plot_summary")
-            credit_summary_item = self.soup.new_tag("div")
-            credit_summary_item['class'] = "credit_summary_item"
-
-            tropes_tag = self.soup.new_tag("h4")
-            tropes_tag['class'] = "inline"
-            tropes_tag.string = "Tropes:"
-            credit_summary_item.append(tropes_tag)
-
+            tags = []
             for i in range(6):
                 t = tropes[i]
                 tropes_name_tag = self.soup.new_tag("a", href=t[0])
                 tropes_name_tag.string = t[1]
-                credit_summary_item.append(tropes_name_tag)
-
-                comma = self.soup.new_string(", ")
-                credit_summary_item.append(comma)
-
-            plot_summary_tag.append(credit_summary_item)
-            print(plot_summary_tag)
+                tags.append(tropes_name_tag)
+            self.add_new_element_to_plot_summary_tag("Tropes", tags)
 
     def get_most_important_actors(self):
         el = self.soup.find("div", attrs={"class": "article", "id": "titleCast"})
@@ -66,22 +73,9 @@ class WebPage():
         net_name = get_network_name(series_name)
         print("network name:", net_name)
         if net_name:
-            plot_summary_tag = self.soup.find(class_="plot_summary")
-            credit_summary_item = self.soup.new_tag("div")
-            credit_summary_item['class'] = "credit_summary_item"
-
-            network_tag = self.soup.new_tag("h4")
-            network_tag['class'] = "inline"
-            network_tag.string = "Network:"
-            credit_summary_item.append(network_tag)
-
             network_name_tag = self.soup.new_tag("a", href=net_name)
             network_name_tag.string = net_name.split('/')[-1]
-            credit_summary_item.append(network_name_tag)
-
-            plot_summary_tag.append(credit_summary_item)
-
-            # print(plot_summary_tag)
+            self.add_new_element_to_plot_summary_tag("Network", [network_name_tag])
 
     def create_actor_row(self, actor, i: int):
         row = self.soup.new_tag("tr")
