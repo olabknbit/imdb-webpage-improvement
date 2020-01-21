@@ -44,7 +44,8 @@ def get_info_from_dbpedia(series_name: str) -> Optional[Series]:
     series = None
     if len(results) > 0:
         result = results[0]
-        network = result['net']['value'] if 'net' in result.keys() else None
+        network = result['net']['value'].replace("_(TV_channel)", "").replace("_",
+                                                                              " ") if 'net' in result.keys() else None
         dbpedia_uri = result['film']['value'] if 'film' in result.keys() else None
         wikidata_uri = result['sameas']['value'] if 'sameas' in result.keys() else None
         series = Series(dbpedia_uri=dbpedia_uri, network=network,
