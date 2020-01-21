@@ -33,5 +33,6 @@ $ python install_certificates.py
 ## Quick start
 imdb-webpage-improvement can be run with:
 ```bash
-$ python3.8 web_scrapper.py
+$ python3.8 web_scrapper.py [webpage]
 ```
+where `webpage` is e.g. https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt
