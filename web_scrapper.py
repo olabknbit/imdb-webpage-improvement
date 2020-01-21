@@ -18,9 +18,11 @@ class WebPage():
         response = requests.get(self.url)
         return bs(response.text, 'html.parser')
 
-    def serialize(self, full_title):
-        with open(directory + full_title + ".htm", 'w') as f:
+    def serialize(self, full_title) -> str:
+        filename = directory + full_title + ".htm"
+        with open(filename, 'w') as f:
             f.write(self.soup.prettify())
+        return filename
 
     def grab_original_title(self):
         if (original_title := self.soup.find("div", attrs={"class": "originalTitle"})) is not None:
@@ -168,7 +170,15 @@ class WebPage():
         self.add_network_name_info(series)
         self.add_tropes_info(series_name)
         self.add_actors_info(series)
-        self.serialize(full_title)
+        return self.serialize(full_title)
+
+    def show(self, filename):
+        import webbrowser
+        import os
+        new = 2  # open in a new tab, if possible
+
+        url = "file://" + os.path.realpath(filename)
+        webbrowser.open(url, new=new)
 
 
 def main():
@@ -189,7 +199,8 @@ def main():
 
     for url in urls:
         wp = WebPage(url)
-        wp.improve()
+        filename = wp.improve()
+        wp.show(filename)
 
 
 if __name__ == "__main__":
