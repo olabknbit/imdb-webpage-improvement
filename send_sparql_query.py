@@ -93,11 +93,20 @@ def get_wikidata_actors(series_uri: str) -> Dict[str, Actor]:
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
     """
+    import urllib.error
+    # TODO add try except clauses in all requests
     print(query)
-    sparql.setQuery(query)
-    # print(query)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
+    try:
+        sparql.setQuery(query)
+        # print(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+    except urllib.error.HTTPError as e:
+        print("Error occurred: %s. Waiting 1 sec and retrying" % str(e))
+        import time
+        time.sleep(1)
+        print("Retying")
+        return get_wikidata_actors(series_uri)
 
     handles_names = {"RottenTomatoes": "https://www.rottentomatoes.com/",
                      "Instagram": "https://www.instagram.com/",
