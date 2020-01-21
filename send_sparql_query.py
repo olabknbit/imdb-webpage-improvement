@@ -35,7 +35,7 @@ def get_info_from_dbpedia(series_name: str) -> Optional[Series]:
         }
         LIMIT 20
     """
-    print(query)
+    # print(query)
     sparql.setQuery(query)
     # print(query)
     sparql.setReturnFormat(JSON)
@@ -95,7 +95,7 @@ def get_wikidata_actors(series_uri: str) -> Dict[str, Actor]:
     """
     import urllib.error
     # TODO add try except clauses in all requests
-    print(query)
+    # print(query)
     try:
         sparql.setQuery(query)
         # print(query)
@@ -150,7 +150,7 @@ def query_wikidata_for_actor_info(actor_uri: str) -> Optional[Actor]:
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
         } 
     """
-    print(query)
+    # print(query)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()

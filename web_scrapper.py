@@ -50,7 +50,7 @@ class WebPage():
                 credit_summary_item.append(comma)
 
         plot_summary_tag.append(credit_summary_item)
-        print(plot_summary_tag)
+        # print(plot_summary_tag)
 
     def add_tropes_info(self, series_name):
         tropes = retrieve_tropes(series_name)
@@ -75,7 +75,7 @@ class WebPage():
 
     def add_network_name_info(self, series: Series):
         net_name = series.network
-        print("network name:", net_name)
+        # print("network name:", net_name)
         if net_name:
             network_name_tag = self.soup.new_tag("a", href=net_name)
             network_name_tag.string = net_name.split('/')[-1]
@@ -98,7 +98,7 @@ class WebPage():
         # Add actor handles cell
         handles_tag = self.soup.new_tag("td")
         for website, handle in actor.handles.items():
-            print(handle)
+            # print(handle)
             handle_a_tag = self.soup.new_tag("a", href=handle)
             handle_a_tag.string = website
             handles_tag.append(handle_a_tag)
@@ -133,7 +133,7 @@ class WebPage():
     def add_actors_info(self, series: Series):
         actor_names = self.get_most_important_actors()
         actors = get_series_actors(series, actor_names)
-        print("actors:", [a.to_string() for a in actors])
+        # print("actors:", [a.to_string() for a in actors])
         if len(actors) > 0:
             plot_summary_tag = self.soup.find(class_="plot_summary")
             credit_summary_item = self.soup.new_tag("div")
@@ -161,11 +161,11 @@ class WebPage():
         if not (series_name := self.grab_original_title()):
             index = full_title.find(" (TV Series")
             series_name = full_title[:index]
-        print(series_name)
+        # print(series_name)
         from setup import prepare_data_for_given_series
         prepare_data_for_given_series(series_name, False)
 
-        print(full_title, "XXX", series_name)
+        # print(full_title, "XXX", series_name)
         series = get_info_from_dbpedia(series_name)
         self.add_network_name_info(series)
         self.add_tropes_info(series_name)
@@ -181,23 +181,21 @@ class WebPage():
         webbrowser.open(url, new=new)
 
 
-def main():
-    urls = [
-        'https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt',
-        'https://www.imdb.com/title/tt1520211/?ref_=adv_li_tt',
-        'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',  # Altered Carbon
-        'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',  # Silicon Valley
-        'https://www.imdb.com/title/tt0397442/?ref_=fn_al_tt_1',  # Plotkara
-        'https://www.imdb.com/title/tt4574334/?ref_=fn_al_tt_1',  # Stranger Things
-        'https://www.imdb.com/title/tt5179408/?ref_=fn_al_tt_1',  # You Me Her
-        'https://www.imdb.com/title/tt0108778/?ref_=fn_al_tt_1',  # Friends
-        'https://www.imdb.com/title/tt1578873/?ref_=nv_sr_srsg_0'  # Pretty Little Liars
-    ]
+def main(webpage):
     import os
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    for url in urls:
+    url = webpage.strip()
+    wp = WebPage(url)
+    filename = wp.improve()
+    wp.show(filename)
+
+    while True:
+        print(
+            "\n\nIf you want to parse additional webpage, paste the url here. You may want to follow it with a space."
+            "\nCtrl+C to exit: ")
+        url = input().strip()
         wp = WebPage(url)
         filename = wp.improve()
         wp.show(filename)
@@ -205,6 +203,14 @@ def main():
 
 if __name__ == "__main__":
     from setup import parse_dbtropes
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Process imdb series webpages.')
+    parser.add_argument('webpage', type=str,
+                        help='webpage url. e.g. https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt',
+                        default='https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt')
+
+    args = parser.parse_args()
 
     parse_dbtropes(verbose=False)
-    main()
+    main(args.webpage)
