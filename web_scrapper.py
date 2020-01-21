@@ -172,7 +172,6 @@ class WebPage():
 
 
 def main():
-    # TODO(olab): Fix- Series in None if series not in dbpedia and script crashes (Singapore Social, You)
     urls = [
         'https://www.imdb.com/title/tt2261227/?ref_=fn_al_tt_1',  # Altered Carbon
         'https://www.imdb.com/title/tt2575988/?ref_=nv_sr_srsg_0',  # Silicon Valley

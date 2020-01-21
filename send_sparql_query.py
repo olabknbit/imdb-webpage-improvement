@@ -41,7 +41,6 @@ def get_info_from_dbpedia(series_name: str) -> Optional[Series]:
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()["results"]["bindings"]
 
-    series = None
     if len(results) > 0:
         result = results[0]
         network = result['net']['value'].replace("_(TV_channel)", "").replace("_",
@@ -59,6 +58,8 @@ def get_info_from_dbpedia(series_name: str) -> Optional[Series]:
                 actor = Actor(dbpedia_uri=actor_dbpedia_uri, wikidata_uri=strip_wikidata_entity(actor_wikidata_uri),
                               name=actor_name)
                 series.actors.append(actor)
+    else:
+        series = Series(dbpedia_uri=None, network=None, wikidata_uri=None, actors=[])
 
     return series
 
@@ -164,7 +165,7 @@ def get_series_actors(series: Series, names_to_put_first: List[str], show_all=Tr
     limit = 20
     uri = series.wikidata_uri
     if uri is None:
-        wikidata_actors = []
+        wikidata_actors = {}
     else:
         wikidata_actors = get_wikidata_actors(uri)
     sorted_actors = []
