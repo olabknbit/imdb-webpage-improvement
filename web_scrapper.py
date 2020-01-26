@@ -218,7 +218,7 @@ class WebPage():
         webbrowser.open(url, new=new)
 
 
-def main(webpage):
+def main(webpage, silent: bool):
     import os
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -226,17 +226,21 @@ def main(webpage):
     url = webpage.strip()
     wp = WebPage(url)
     filename = wp.improve()
-    wp.show(filename)
+    if not silent:
+        wp.show(filename)
 
     try:
         while True:
-            print(
-                "\n\nIf you want to parse additional webpage, paste the url here. You may want to follow it with a space."
-                "\nCtrl+C to exit: ")
+            print("Webpage parsed. If it didn't open automatically in a new window, "
+                  "please inspect the serialized version in the `web_pages` dir"
+                  "\nIf you want to parse an additional webpage, paste the url here. "
+                  "You may want to follow it with a space."
+                  "\nCtrl+C to exit: ")
             url = input().strip()
             wp = WebPage(url)
             filename = wp.improve()
-            wp.show(filename)
+            if not silent:
+                wp.show(filename)
     except KeyboardInterrupt:
         print("\nSorry to see you go. Bye bye")
         return
@@ -251,7 +255,10 @@ if __name__ == "__main__":
                         help='webpage url. e.g. https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt',
                         default='https://www.imdb.com/title/tt1606375/?ref_=adv_li_tt')
 
+    parser.add_argument("-s", "--silent", help="silent mode. Will not open webpages automatically.",
+                        action="store_true")
+
     args = parser.parse_args()
 
     parse_dbtropes(verbose=False)
-    main(args.webpage)
+    main(args.webpage, args.silent)
