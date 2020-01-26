@@ -170,7 +170,7 @@ def query_wikidata_for_actor_info(actor_uri: str) -> Optional[Actor]:
         return Actor(wikidata_uri=uri, name=name, date_of_birth=date_of_birth, handles=handles)
 
 
-def get_series_actors(series: Series, names_to_put_first: List[str], show_all=True) -> List[Actor]:
+def get_series_actors(series: Series, actors_from_original_webpage: List[Actor], show_all=True) -> List[Actor]:
     limit = 20
     uri = series.wikidata_uri
     if uri is None:
@@ -178,23 +178,22 @@ def get_series_actors(series: Series, names_to_put_first: List[str], show_all=Tr
     else:
         wikidata_actors = get_wikidata_actors(uri)
     sorted_actors = []
+    actor_names = [a.name for a in actors_from_original_webpage]
 
-    for name in names_to_put_first:
-        actor = None
-        if name in wikidata_actors.keys():
-            actor = wikidata_actors[name]
-        elif wikidata_uri := series.get_actor_wikidata_uri(actor_name=name):
+    for actor_with_name_only in actors_from_original_webpage:
+        if actor_with_name_only.name in wikidata_actors.keys():
+            actor = wikidata_actors[actor_with_name_only.name]
+            actor_with_name_only.improve(actor)
+        elif wikidata_uri := series.get_actor_wikidata_uri(actor_name=actor_with_name_only.name):
             actor = query_wikidata_for_actor_info(wikidata_uri)
-        if actor is None:
-            actor = Actor(name=name)
-
-        sorted_actors.append(actor)
+            actor_with_name_only.improve(actor)
+        sorted_actors.append(actor_with_name_only)
 
     if show_all:
         for name in wikidata_actors.keys():
             if len(sorted_actors) > limit:
                 break
-            if name not in names_to_put_first:
+            if name not in actor_names:
                 sorted_actors.append(wikidata_actors[name])
 
     return sorted_actors

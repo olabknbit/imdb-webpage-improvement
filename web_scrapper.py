@@ -1,3 +1,5 @@
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup as bs
 
@@ -18,7 +20,12 @@ class WebPage():
         response = requests.get(self.url)
         return bs(response.text, 'html.parser')
 
-    def serialize(self, full_title) -> str:
+    def serialize(self, full_title: str) -> str:
+        """
+        Serialize webpage on disk
+        :param full_title (str): full title (which is also filename) of a webpage
+        :return: relational filepath
+        """
         filename = directory + full_title + ".htm"
         with open(filename, 'w') as f:
             f.write(self.soup.prettify())
@@ -66,11 +73,12 @@ class WebPage():
     def get_most_important_actors(self):
         el = self.soup.find("div", attrs={"class": "article", "id": "titleCast"})
         table = el.find("table", attrs={"class": "cast_list"})
-        actor_names = []
+        actor_names: List[Actor] = []
         for row in table.findAll('tr')[1:]:
             if first_column := row.find('td', attrs={"class": "primary_photo"}):
-                actor_name = first_column.find("a").find("img")["title"]
-                actor_names.append(actor_name)
+                a_tag = first_column.find("a")
+                actor_name = a_tag.find("img")["title"]
+                actor_names.append(Actor(name=actor_name, url=a_tag["href"]))
         return actor_names
 
     def add_network_name_info(self, series: Series):
@@ -130,8 +138,7 @@ class WebPage():
 
         return header_tag
 
-    def add_actors_info(self, series: Series, actor_names):
-        actors = get_series_actors(series, actor_names)
+    def add_actors_info(self, actors):
         # print("actors:", [a.to_string() for a in actors])
         if len(actors) > 0:
             plot_summary_tag = self.soup.find(class_="plot_summary")
@@ -155,25 +162,35 @@ class WebPage():
             credit_summary_item.append(table_tag)
             plot_summary_tag.append(credit_summary_item)
 
-    def add_microdata(self, actor_names):
+    def add_microdata(self, actors: List[Actor]) -> None:
+        """
+        Given a list of actors, add missing information (date of birth) to existing microdata and add additional
+        actors to the list
+        :param actors (List[Actor]): List of actors
+        :return: None
+        """
         import json
 
-        mjson = self.soup.find("head").find("script", type="application/ld+json")
-        mjson_text = json.loads(mjson.text)
-        # "actor": [
-        #         {
-        #             "@type": "Person",
-        #             "url": "/name/nm0175134/",
-        #             "name": "Chris Conner"
-        #         }
-        #     ],
+        def create_person(actor: Actor):
+            """
+            Create a microdata (JSON) Person object
+            :param actor (Actor): Actor object that has name, date_of_birth and url properties
+            :return: return a JSON representing a Person in microdata
+            """
+            return {"@type": "Person", "url": actor.url, "name": actor.name, "birthDate": actor.date_of_birth}
 
-        mjson_text["actor"].append({"@type": "Person", "url": "some url", "name": actor_names[4]})
+        script_tag = self.soup.find("head").find("script", type="application/ld+json")
+        mjson_text = json.loads(script_tag.text)
 
-        print(json.dumps(mjson_text, indent=4))
-        mjson.string = json.dumps(mjson_text, indent=4)
+        for j_actor, actor in zip(mjson_text["actor"], actors[:4]):
+            j_actor["birthDate"] = actor.date_of_birth
 
-    def improve(self):
+        for actor in actors[4:]:
+            mjson_text["actor"].append(create_person(actor))
+
+        script_tag.string = json.dumps(mjson_text, indent=4)
+
+    def improve(self) -> str:
         full_title = self.soup.find("title").text
         if not (series_name := self.grab_original_title()):
             index = full_title.find(" (TV Series")
@@ -183,12 +200,13 @@ class WebPage():
         prepare_data_for_given_series(series_name, False)
 
         series = get_info_from_dbpedia(series_name)
-        actor_names = self.get_most_important_actors()
+        actors = self.get_most_important_actors()
+        actors = get_series_actors(series, actors)
 
-        self.add_microdata(actor_names)
+        self.add_microdata(actors)
         self.add_network_name_info(series)
         self.add_tropes_info(series_name)
-        self.add_actors_info(series, actor_names)
+        self.add_actors_info(actors)
         return self.serialize(full_title)
 
     def show(self, filename):
