@@ -178,7 +178,6 @@ def get_series_actors(series: Series, actors_from_original_webpage: List[Actor],
     else:
         wikidata_actors = get_wikidata_actors(uri)
     sorted_actors = []
-    actor_names = [a.name for a in actors_from_original_webpage]
 
     for actor_with_name_only in actors_from_original_webpage:
         if actor_with_name_only.name in wikidata_actors.keys():
@@ -193,7 +192,7 @@ def get_series_actors(series: Series, actors_from_original_webpage: List[Actor],
         for name in wikidata_actors.keys():
             if len(sorted_actors) > limit:
                 break
-            if name not in actor_names:
+            if name not in [a.name for a in actors_from_original_webpage]:
                 sorted_actors.append(wikidata_actors[name])
 
     return sorted_actors
