@@ -130,8 +130,7 @@ class WebPage():
 
         return header_tag
 
-    def add_actors_info(self, series: Series):
-        actor_names = self.get_most_important_actors()
+    def add_actors_info(self, series: Series, actor_names):
         actors = get_series_actors(series, actor_names)
         # print("actors:", [a.to_string() for a in actors])
         if len(actors) > 0:
@@ -156,20 +155,40 @@ class WebPage():
             credit_summary_item.append(table_tag)
             plot_summary_tag.append(credit_summary_item)
 
+    def add_microdata(self, actor_names):
+        import json
+
+        mjson = self.soup.find("head").find("script", type="application/ld+json")
+        mjson_text = json.loads(mjson.text)
+        # "actor": [
+        #         {
+        #             "@type": "Person",
+        #             "url": "/name/nm0175134/",
+        #             "name": "Chris Conner"
+        #         }
+        #     ],
+
+        mjson_text["actor"].append({"@type": "Person", "url": "some url", "name": actor_names[4]})
+
+        print(json.dumps(mjson_text, indent=4))
+        mjson.string = json.dumps(mjson_text, indent=4)
+
     def improve(self):
         full_title = self.soup.find("title").text
         if not (series_name := self.grab_original_title()):
             index = full_title.find(" (TV Series")
             series_name = full_title[:index]
-        # print(series_name)
+
         from setup import prepare_data_for_given_series
         prepare_data_for_given_series(series_name, False)
 
-        # print(full_title, "XXX", series_name)
         series = get_info_from_dbpedia(series_name)
+        actor_names = self.get_most_important_actors()
+
+        self.add_microdata(actor_names)
         self.add_network_name_info(series)
         self.add_tropes_info(series_name)
-        self.add_actors_info(series)
+        self.add_actors_info(series, actor_names)
         return self.serialize(full_title)
 
     def show(self, filename):
@@ -189,16 +208,20 @@ def main(webpage):
     url = webpage.strip()
     wp = WebPage(url)
     filename = wp.improve()
-    wp.show(filename)
+    # wp.show(filename)
 
-    while True:
-        print(
-            "\n\nIf you want to parse additional webpage, paste the url here. You may want to follow it with a space."
-            "\nCtrl+C to exit: ")
-        url = input().strip()
-        wp = WebPage(url)
-        filename = wp.improve()
-        wp.show(filename)
+    try:
+        while True:
+            print(
+                "\n\nIf you want to parse additional webpage, paste the url here. You may want to follow it with a space."
+                "\nCtrl+C to exit: ")
+            url = input().strip()
+            wp = WebPage(url)
+            filename = wp.improve()
+            # wp.show(filename)
+    except KeyboardInterrupt:
+        print("\nSorry to see you go. Bye bye")
+        return
 
 
 if __name__ == "__main__":
