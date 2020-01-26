@@ -226,7 +226,7 @@ def main(webpage):
     url = webpage.strip()
     wp = WebPage(url)
     filename = wp.improve()
-    # wp.show(filename)
+    wp.show(filename)
 
     try:
         while True:
@@ -236,7 +236,7 @@ def main(webpage):
             url = input().strip()
             wp = WebPage(url)
             filename = wp.improve()
-            # wp.show(filename)
+            wp.show(filename)
     except KeyboardInterrupt:
         print("\nSorry to see you go. Bye bye")
         return
