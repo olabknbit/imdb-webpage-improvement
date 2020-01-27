@@ -24,10 +24,11 @@ def retrieve_tropes(series_name: str) -> List[Tuple[Any, str]]:
 
     has_feature = URIRef("http://skipforward.net/skipforward/resource/seeder/skipinions/hasFeature")
     tropes_list = []
-    for o in g.objects(series_full_name, has_feature):
-        tropes = o.split('/')
+    for url in g.objects(series_full_name, has_feature):
+        tropes = url.split('/')
         if tropes[4] == 'Main':
-            tropes_list.append((o, tropes[5]))
+            trope = ''.join(' ' + x if x.isupper() else x for x in tropes[5]).strip(' ')
+            tropes_list.append((url, trope))
     return tropes_list
 
 
