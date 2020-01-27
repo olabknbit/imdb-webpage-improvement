@@ -10,17 +10,13 @@ def retrieve_tropes(series_name: str) -> List[Tuple[Any, str]]:
     """
     Retrieve series related tropes from local dbtropes series datastore.
     :param series_name (str): Name of a series
-    :return List[Tuple[Any, str]]: List of tropes occurring in that series
-    TODO(bulka): what is in the tuple except for series name? Update docstring pls.
+    :return List[Tuple[Any, str]]: List of tropes occurring in that series in a form of a list of tuples
+    (url, trope name)
     """
     g = Graph()
     series_data_name = get_series_dbtropes_filename(series_name)
     g.parse(series_data_name, format="nt")
     series_full_name = URIRef("http://dbtropes.org/resource/Series/" + series_name.replace(' ', ''))
-    # if (series_full_name, None, None) in g:
-    # print("This graph contains triples about " + series_name)
-    # else:
-    # print("This graph does not contain triples about " + series_name)
 
     has_feature = URIRef("http://skipforward.net/skipforward/resource/seeder/skipinions/hasFeature")
     tropes_list = []
@@ -30,7 +26,3 @@ def retrieve_tropes(series_name: str) -> List[Tuple[Any, str]]:
             trope = ''.join(' ' + x if x.isupper() else x for x in tropes[5]).strip(' ')
             tropes_list.append((url, trope))
     return tropes_list
-
-
-if __name__ == "__main__":
-    retrieve_tropes("Friends")
