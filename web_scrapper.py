@@ -14,22 +14,38 @@ directory = 'web_pages/'
 class WebPage():
     def __init__(self, url: str):
         self.url: str = url
+        self.full_title = ""
         self.soup: bs = self.__init_soup__()
+        self.original_page = self.soup.prettify()
+        self.filename = None
 
     def __init_soup__(self):
         response = requests.get(self.url)
         return bs(response.text, 'html.parser')
 
-    def serialize(self, full_title: str) -> str:
+    def serialize(self) -> None:
         """
         Serialize webpage on disk
-        :param full_title (str): full title (which is also filename) of a webpage
         :return: relational filepath
         """
-        filename = directory + full_title + ".htm"
+        filename = directory + self.full_title + ".htm"
         with open(filename, 'w') as f:
             f.write(self.soup.prettify())
-        return filename
+        self.filename = filename
+
+    def diff(self):
+        import difflib
+
+        text1 = self.original_page
+        text1_lines = [l.strip() for l in text1.splitlines()]
+
+        text2 = self.soup.prettify()
+        text2_lines = [l.strip() for l in text2.splitlines()]
+        diff = difflib.unified_diff(text1_lines, text2_lines, fromfile="original", tofile="improved")
+
+        filename = directory + self.full_title + "_diff.txt"
+        with open(filename, 'w') as f:
+            f.write('\n'.join(diff))
 
     def grab_original_title(self):
         if (original_title := self.soup.find("div", attrs={"class": "originalTitle"})) is not None:
@@ -190,11 +206,11 @@ class WebPage():
 
         script_tag.string = json.dumps(mjson_text, indent=4)
 
-    def improve(self) -> str:
-        full_title = self.soup.find("title").text
+    def improve(self) -> None:
+        self.full_title = self.soup.find("title").text
         if not (series_name := self.grab_original_title()):
-            index = full_title.find(" (TV Series")
-            series_name = full_title[:index]
+            index = self.full_title.find(" (TV Series")
+            series_name = self.full_title[:index]
 
         from setup import prepare_data_for_given_series
         prepare_data_for_given_series(series_name, False)
@@ -207,14 +223,14 @@ class WebPage():
         self.add_network_name_info(series)
         self.add_tropes_info(series_name)
         self.add_actors_info(actors)
-        return self.serialize(full_title)
+        self.serialize()
 
-    def show(self, filename):
+    def show(self):
         import webbrowser
         import os
         new = 2  # open in a new tab, if possible
 
-        url = "file://" + os.path.realpath(filename)
+        url = "file://" + os.path.realpath(self.filename)
         webbrowser.open(url, new=new)
 
 
@@ -225,9 +241,10 @@ def main(webpage, silent: bool):
 
     url = webpage.strip()
     wp = WebPage(url)
-    filename = wp.improve()
+    wp.improve()
+    wp.diff()
     if not silent:
-        wp.show(filename)
+        wp.show()
 
     try:
         while True:
@@ -238,9 +255,10 @@ def main(webpage, silent: bool):
                   "\nCtrl+C to exit: ")
             url = input().strip()
             wp = WebPage(url)
-            filename = wp.improve()
+            wp.improve()
+            wp.diff()
             if not silent:
-                wp.show(filename)
+                wp.show()
     except KeyboardInterrupt:
         print("\nSorry to see you go. Bye bye")
         return
