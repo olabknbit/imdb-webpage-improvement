@@ -6,7 +6,7 @@ html-text==0.5.1
 html5lib==1.0.1
 idna==2.8
 isodate==0.6.0
-lxml==4.4.2
+lxml==4.6.5
 mf2py==1.1.2
 pyparsing==2.4.5
 rdflib==4.2.2
